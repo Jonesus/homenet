@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: mikrotik/.*\.tfvars\.enc$
+    age: age1z7plt9dd9qspfygfpwsrx44kc6s86jz04jfgmmw739svg3h49ugq9yqzv0
