@@ -21,3 +21,9 @@ variable "tofu_user_password" {
   type        = string
   sensitive   = true
 }
+
+variable "wifi_password" {
+  description = "Shared WiFi passphrase for home network SSIDs"
+  type        = string
+  sensitive   = true
+}
