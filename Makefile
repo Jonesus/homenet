@@ -1,24 +1,29 @@
 SHELL   := /bin/bash
-ROUTER  := mikrotik
-SECRETS := $(ROUTER)/secrets.tfvars.enc
+DIR     := mikrotik
+SECRETS := $(DIR)/secrets.tfvars.enc
 
-.PHONY: init plan apply fmt validate bootstrap
+.PHONY: init plan apply fmt validate bootstrap bootstrap-switch
 
 init:
-	tofu -chdir=$(ROUTER) init
+	tofu -chdir=$(DIR) init
 
 plan:
-	tofu -chdir=$(ROUTER) plan -var-file=<(sops -d $(SECRETS))
+	tofu -chdir=$(DIR) plan -var-file=<(sops -d $(SECRETS))
 
 apply:
-	tofu -chdir=$(ROUTER) apply -var-file=<(sops -d $(SECRETS))
+	tofu -chdir=$(DIR) apply -var-file=<(sops -d $(SECRETS))
 
 fmt:
-	tofu fmt -recursive $(ROUTER)
+	tofu fmt -recursive $(DIR)
 
 validate:
-	tofu -chdir=$(ROUTER) validate
+	tofu -chdir=$(DIR) validate
 
+# Run once before init — see README for the full bootstrap procedure.
 bootstrap:
-	@PASS=$$(sops -d $(SECRETS) | grep routeros_password | cut -d'"' -f2); \
+	@PASS=$$(sops -d $(SECRETS) | grep router_password | cut -d'"' -f2); \
 	 bash scripts/bootstrap-tls.sh 192.168.88.1 admin "$$PASS"
+
+# Run once before first apply targeting the switch.
+bootstrap-switch:
+	bash scripts/bootstrap-switch.sh

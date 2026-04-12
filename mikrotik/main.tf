@@ -8,7 +8,7 @@ resource "routeros_system_identity" "this" {
 
 resource "routeros_system_user" "mgmt" {
   name     = "iac"
-  password = var.tofu_user_password
+  password = var.router_tofu_password
   group    = "write"
   comment  = "OpenTofu management account"
   address  = "192.168.88.0/24"
