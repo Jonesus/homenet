@@ -1,5 +1,5 @@
 # ════════════════════════════════════════════════════════════════════════════
-#  Switch — homenet-sw (RB5009 at 192.168.88.2, dumb L2 mode)
+#  Switch — homenet-sw (RB5009 at 192.168.1.2, dumb L2 mode)
 #  All resources in this file target the routeros.switch provider alias.
 # ════════════════════════════════════════════════════════════════════════════
 
@@ -18,7 +18,7 @@ resource "routeros_system_user" "sw_mgmt" {
   password = var.switch_tofu_password
   group    = "write"
   comment  = "OpenTofu management account"
-  address  = "192.168.88.0/24"
+  address  = "192.168.1.0/24"
 }
 
 # ── IP services ──────────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ resource "routeros_ip_service" "sw_ssh" {
   numbers  = "ssh"
   port     = 22
   disabled = false
-  address  = "192.168.88.0/24"
+  address  = "192.168.1.0/24"
 }
 
 # ── Bridge ───────────────────────────────────────────────────────────────────
@@ -140,7 +140,7 @@ resource "routeros_bridge_port" "sw_sfp_sfpplus1" {
 
 resource "routeros_ip_address" "sw_mgmt" {
   provider  = routeros.switch
-  address   = "192.168.88.2/24"
+  address   = "192.168.1.2/24"
   interface = routeros_bridge.sw_bridge.name
   comment   = "Switch management IP"
 }
@@ -150,5 +150,5 @@ resource "routeros_ip_address" "sw_mgmt" {
 resource "routeros_ip_route" "sw_default" {
   provider    = routeros.switch
   dst_address = "0.0.0.0/0"
-  gateway     = "192.168.88.1"
+  gateway     = "192.168.1.1"
 }

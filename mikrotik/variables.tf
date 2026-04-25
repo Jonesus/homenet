@@ -1,9 +1,9 @@
-# ── Router (homenet-gw, 192.168.88.1) ────────────────────────────────────────
+# ── Router (homenet-gw, 192.168.1.1) ─────────────────────────────────────────
 
 variable "router_host" {
   description = "Router REST API base URL"
   type        = string
-  default     = "https://192.168.88.1"
+  default     = "https://192.168.1.1"
 }
 
 variable "router_username" {
@@ -24,12 +24,12 @@ variable "router_tofu_password" {
   sensitive   = true
 }
 
-# ── Switch (homenet-sw, 192.168.88.2) ────────────────────────────────────────
+# ── Switch (homenet-sw, 192.168.1.2) ─────────────────────────────────────────
 
 variable "switch_host" {
   description = "Switch REST API base URL"
   type        = string
-  default     = "https://192.168.88.2"
+  default     = "https://192.168.1.2"
 }
 
 variable "switch_username" {
@@ -56,4 +56,10 @@ variable "wifi_password" {
   description = "Shared WiFi passphrase for home network SSIDs"
   type        = string
   sensitive   = true
+}
+
+variable "cluster_ingress_ip" {
+  description = "LAN IP of the Kubernetes ingress (HTTP/HTTPS dst-nat target). Set to the MetalLB/kube-vip address fronting the cluster."
+  type        = string
+  default     = "192.168.1.208"
 }

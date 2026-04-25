@@ -4,8 +4,8 @@ OpenTofu infrastructure-as-code for home network devices managed as a single pro
 
 | Device | Model | Address | Role |
 |--------|-------|---------|------|
-| homenet-gw | RB5009 | 192.168.88.1 | Router / CAPsMAN controller |
-| homenet-sw | RB5009 | 192.168.88.2 | Dumb L2 switch |
+| homenet-gw | RB5009 | 192.168.1.1 | Router / CAPsMAN controller |
+| homenet-sw | RB5009 | 192.168.1.2 | Dumb L2 switch |
 
 ## Prerequisites
 
@@ -96,6 +96,72 @@ tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
   routeros_ip_service.ssh     ssh
 ```
 
+The factory `defconf` also creates a WAN/LAN interface list pair, a DHCP
+client on ether1, a DNS resolver, an `srcnat` masquerade rule, and a set of
+filter rules. All of those are now expressed in `wan.tf` and `firewall.tf` and
+must be imported too. Look up the internal `*N` IDs from the API and import
+each one (run these from a host that can reach 192.168.1.1 — the order of the
+filter rules must match the order in `firewall.tf`):
+
+```bash
+# Look up IDs first
+curl -sk -u admin: https://192.168.1.1/rest/interface/list
+curl -sk -u admin: https://192.168.1.1/rest/interface/list/member
+curl -sk -u admin: https://192.168.1.1/rest/ip/dhcp-client
+curl -sk -u admin: https://192.168.1.1/rest/ip/firewall/filter
+curl -sk -u admin: https://192.168.1.1/rest/ip/firewall/nat
+
+# Interface lists + members
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_interface_list.wan        '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_interface_list.lan        '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_interface_list_member.wan_ether1  '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_interface_list_member.lan_bridge  '*N'
+
+# DHCP client + DNS
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_dhcp_client.wan  '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_dns.this         '*'
+
+# Firewall filter (one per defconf rule — match by comment when picking IDs)
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_filter.defconf_input_established       '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_filter.defconf_input_drop_invalid      '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_filter.defconf_input_icmp              '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_filter.defconf_input_loopback          '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_filter.defconf_input_drop_nonlan       '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_filter.defconf_forward_ipsec_in        '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_filter.defconf_forward_ipsec_out       '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_filter.defconf_forward_fasttrack       '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_filter.defconf_forward_established     '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_filter.defconf_forward_drop_invalid    '*N'
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_filter.defconf_forward_drop_wan_new    '*N'
+
+# NAT — only the masquerade rule pre-exists; dstnat_k8s rules are net-new
+tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+  routeros_ip_firewall_nat.masquerade  '*N'
+```
+
+After `make plan`, expect **no** changes against any imported resource and
+**two** new `routeros_ip_firewall_nat.dstnat_k8s` rules (HTTP and HTTPS). If a
+`defconf_*` rule shows a diff, the attribute in the `.tf` file disagrees with
+what the factory shipped on your hardware — reconcile by adjusting the `.tf`
+to match (RouterOS firmware tweaks the defconf occasionally).
+
 ### Step 4: Plan and apply
 
 ```bash
@@ -131,10 +197,15 @@ make bootstrap-switch
 
 This script:
 1. Moves ether1 from the factory WAN role into the bridge
-2. Assigns management IP 192.168.88.2 on the bridge
-3. Adds a default route via 192.168.88.1
+2. Assigns management IP 192.168.1.2 on the bridge
+3. Adds a default route via 192.168.1.1
 4. Removes the factory DHCP server
 5. Runs TLS bootstrap at the new IP
+
+Because the switch jumps from the factory `192.168.88.0/24` to `192.168.1.0/24`
+mid-bootstrap, reconfigure the laptop's IP to `192.168.1.x` as soon as the
+script prints "Removing factory IP 192.168.88.1/24" — otherwise the reachability
+wait on step 6 will time out.
 
 After it finishes, reconnect the SFP+ cable to the router.
 
@@ -145,13 +216,13 @@ and must be imported. Look up the MikroTik internal IDs first:
 
 ```bash
 # Bridge
-curl -sk -u admin: https://192.168.88.2/rest/interface/bridge
+curl -sk -u admin: https://192.168.1.2/rest/interface/bridge
 # Bridge ports
-curl -sk -u admin: https://192.168.88.2/rest/interface/bridge/port
+curl -sk -u admin: https://192.168.1.2/rest/interface/bridge/port
 # IP address
-curl -sk -u admin: https://192.168.88.2/rest/ip/address
+curl -sk -u admin: https://192.168.1.2/rest/ip/address
 # IP route
-curl -sk -u admin: https://192.168.88.2/rest/ip/route
+curl -sk -u admin: https://192.168.1.2/rest/ip/route
 ```
 
 Then import using the `*N` IDs from the API responses (example IDs — yours will differ):

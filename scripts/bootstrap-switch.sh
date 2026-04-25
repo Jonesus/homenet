@@ -9,14 +9,14 @@
 # then run this script.  Reconnect the SFP+ cable to the router afterwards.
 #
 # Usage: bootstrap-switch.sh [INIT_HOST] [FINAL_HOST] [USER] [PASS]
-#   INIT_HOST  — current IP of the device (default: 192.168.88.1)
-#   FINAL_HOST — desired management IP    (default: 192.168.88.2)
+#   INIT_HOST  — current IP of the device (default: 192.168.88.1, factory)
+#   FINAL_HOST — desired management IP    (default: 192.168.1.2)
 #   USER       — admin username           (default: admin)
 #   PASS       — password (required; blank on factory-fresh devices → pass "")
 set -euo pipefail
 
 INIT_HOST="${1:-192.168.88.1}"
-FINAL_HOST="${2:-192.168.88.2}"
+FINAL_HOST="${2:-192.168.1.2}"
 USER="${3:-admin}"
 PASS="${4-}"  # intentionally not :? — factory devices have a blank password
 
@@ -54,9 +54,9 @@ echo "==> Setting management IP to $FINAL_HOST/24..."
 run_init "/ip address add address=$FINAL_HOST/24 interface=bridge" 2>/dev/null || true
 
 # ── 3. Add default route pointing to the router ──────────────────────────────
-echo "==> Adding default route via 192.168.88.1..."
+echo "==> Adding default route via 192.168.1.1..."
 run_init "/ip route remove [find where dst-address=0.0.0.0/0]" 2>/dev/null || true
-run_init "/ip route add dst-address=0.0.0.0/0 gateway=192.168.88.1"
+run_init "/ip route add dst-address=0.0.0.0/0 gateway=192.168.1.1"
 
 # ── 4. Disable the factory DHCP server ───────────────────────────────────────
 echo "==> Disabling factory DHCP server..."

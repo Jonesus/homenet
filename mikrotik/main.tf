@@ -11,7 +11,7 @@ resource "routeros_system_user" "mgmt" {
   password = var.router_tofu_password
   group    = "write"
   comment  = "OpenTofu management account"
-  address  = "192.168.88.0/24"
+  address  = "192.168.1.0/24"
 }
 
 # ── IP services ─────────────────────────────────────────────────────────────
@@ -51,5 +51,18 @@ resource "routeros_ip_service" "ssh" {
   numbers  = "ssh"
   port     = 22
   disabled = false
-  address  = "192.168.88.0/24"
+  address  = "192.168.1.0/24"
+}
+
+# ── LAN IP on the factory bridge ─────────────────────────────────────────────
+# The router ships with `bridge` already configured and carrying 192.168.88.1/24
+# on a fresh device (factory id *1 with comment "defconf"). This resource takes
+# over that address and changes it to the target management IP.  Import first:
+#   tofu -chdir=mikrotik import -var-file=<(sops -d mikrotik/secrets.tfvars.enc) \
+#     routeros_ip_address.lan '*1'
+
+resource "routeros_ip_address" "lan" {
+  address   = "192.168.1.1/24"
+  interface = "bridge"
+  comment   = "Router LAN management IP"
 }
