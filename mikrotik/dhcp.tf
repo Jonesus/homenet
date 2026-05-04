@@ -66,6 +66,7 @@ locals {
     "78:55:36:01:11:BF" = { ip = "192.168.1.133", comment = "" }
     "78:55:36:01:11:C0" = { ip = "192.168.1.111", comment = "" }
     "70:C9:32:93:89:00" = { ip = "192.168.1.101", comment = "Valetudo" }
+    "54:EF:44:9B:C6:34" = { ip = "192.168.1.109", comment = "Aqara Hub M100 (Thread Border Router)" }
   }
 }
 
