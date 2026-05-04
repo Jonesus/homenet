@@ -32,15 +32,18 @@ resource "routeros_ip_dhcp_server" "lan" {
 }
 
 # ── DHCP network options announced to clients ────────────────────────────────
-# dns_server points at the router itself — the router's /ip dns resolver with
-# allow-remote-requests=true answers clients.  If a Pi-hole or similar lives at
-# a fixed LAN IP (e.g. 192.168.1.209 as on the old setup), change dns_server
-# here.
+# Primary DNS is AdGuard Home running in the k8s cluster, exposed via MetalLB
+# at a pinned LoadBalancer IP (see public/infrastructure/adguard/loadbalancer.yaml).
+# AdGuard provides ad-blocking + a wildcard rewrite for *.internal → ingress IP,
+# letting LAN clients reach k8s services as <svc>.internal.
+#
+# The router (192.168.1.1) stays as a secondary so a cluster outage does not
+# take LAN DNS down — clients fall back to RouterOS's resolver.
 
 resource "routeros_ip_dhcp_server_network" "lan" {
   address    = "192.168.1.0/24"
   gateway    = "192.168.1.1"
-  dns_server = ["192.168.1.1"]
+  dns_server = ["192.168.1.209", "192.168.1.1"]
 }
 
 # ── Static DHCP reservations ─────────────────────────────────────────────────
