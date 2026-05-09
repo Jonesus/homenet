@@ -23,19 +23,37 @@ resource "routeros_wifi_datapath" "home" {
 # ── WiFi configuration profiles (pushed to CAPs via provisioning rules) ───────
 
 resource "routeros_wifi_configuration" "band_24" {
-  name     = "home-2.4ghz"
-  ssid     = "AsiaOnPihVintage"
-  mode     = "ap"
-  security = { passphrase = var.wifi_password }
+  name = "home-2.4ghz"
+  ssid = "AsiaOnPihVintage"
+  mode = "ap"
+  security = {
+    passphrase         = var.wifi_password
+    ft                 = "yes"
+    ft_over_ds         = "yes"
+    ft_preserve_vlanid = "yes"
+  }
+  steering = {
+    rrm = "yes"
+    wnm = "yes"
+  }
   datapath = { bridge = "bridge" }
   channel  = { band = "2ghz-ax" }
 }
 
 resource "routeros_wifi_configuration" "band_5" {
-  name     = "home-5ghz"
-  ssid     = "AsiaOnPihvi"
-  mode     = "ap"
-  security = { passphrase = var.wifi_password }
+  name = "home-5ghz"
+  ssid = "AsiaOnPihvi"
+  mode = "ap"
+  security = {
+    passphrase         = var.wifi_password
+    ft                 = "yes"
+    ft_over_ds         = "yes"
+    ft_preserve_vlanid = "yes"
+  }
+  steering = {
+    rrm = "yes"
+    wnm = "yes"
+  }
   datapath = { bridge = "bridge" }
   channel  = { band = "5ghz-ax" }
 }
