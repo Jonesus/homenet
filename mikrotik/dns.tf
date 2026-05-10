@@ -25,3 +25,15 @@ resource "routeros_ip_dns_record" "internal_wildcard" {
   match_subdomain = true
   comment         = "*.internal → ingress-nginx; mirrors AdGuard rewrite"
 }
+
+# rethink-cloud.internal is the hostname the LG ThinQ washer/dryer is paired
+# with (set during SoftAP pairing by rethink-setup). It must hit the rethink
+# Service's MetalLB IP directly, not ingress-nginx — the appliance speaks the
+# ThinQ TLS protocol on ports 4433/46030/47878, not HTTP. This more-specific
+# record overrides the *.internal wildcard above. Mirror in AdGuard.
+resource "routeros_ip_dns_record" "rethink_cloud" {
+  type    = "A"
+  name    = "rethink-cloud.internal"
+  address = "192.168.1.212"
+  comment = "LG ThinQ appliance → rethink Service LoadBalancer"
+}
