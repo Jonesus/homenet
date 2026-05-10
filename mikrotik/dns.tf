@@ -43,3 +43,15 @@ resource "routeros_ip_dns_record" "rethink_cloud_extra" {
   address = "192.168.1.212"
   comment = "LG ThinQ appliance → rethink Service LoadBalancer"
 }
+
+# The LG firmware has common.lgthinq.com:443 hard-coded for the post-pairing
+# setup handshake. Per the rethink wiki we redirect it to our rethink-cloud
+# instance. After initial setup completes the appliance switches to the
+# `hostname` configured in rethink-cloud (rethink.lan), so this rewrite is
+# strictly only needed during first run — but leaving it in place is harmless.
+resource "routeros_ip_dns_record" "rethink_lgthinq_redirect" {
+  type    = "A"
+  name    = "common.lgthinq.com"
+  address = "192.168.1.212"
+  comment = "Hijack LG cloud → rethink Service (post-pairing handshake)"
+}
