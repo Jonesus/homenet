@@ -35,12 +35,14 @@ resource "routeros_ip_dns_record" "rethink_cloud" {
   type    = "A"
   name    = "rethink-cloud.internal"
   address = "192.168.1.212"
+  ttl     = "300"
   comment = "LG ThinQ appliance → rethink Service LoadBalancer"
 }
 resource "routeros_ip_dns_record" "rethink_cloud_extra" {
   type    = "A"
   name    = "rethink.lan"
   address = "192.168.1.212"
+  ttl     = "300"
   comment = "LG ThinQ appliance → rethink Service LoadBalancer"
 }
 
@@ -53,5 +55,6 @@ resource "routeros_ip_dns_record" "rethink_lgthinq_redirect" {
   type    = "A"
   name    = "common.lgthinq.com"
   address = "192.168.1.212"
+  ttl     = "300"
   comment = "Hijack LG cloud → rethink Service (post-pairing handshake)"
 }
