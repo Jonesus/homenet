@@ -28,13 +28,13 @@ resource "routeros_wifi_configuration" "band_24" {
   mode = "ap"
   security = {
     passphrase         = var.wifi_password
-    ft                 = "yes"
-    ft_over_ds         = "yes"
-    ft_preserve_vlanid = "yes"
+    ft                 = "true"
+    ft_over_ds         = "true"
+    ft_preserve_vlanid = "true"
   }
   steering = {
-    rrm = "yes"
-    wnm = "yes"
+    rrm = "true"
+    wnm = "true"
   }
   datapath = { bridge = "bridge" }
   channel  = { band = "2ghz-ax" }
@@ -46,13 +46,13 @@ resource "routeros_wifi_configuration" "band_5" {
   mode = "ap"
   security = {
     passphrase         = var.wifi_password
-    ft                 = "yes"
-    ft_over_ds         = "yes"
-    ft_preserve_vlanid = "yes"
+    ft                 = "true"
+    ft_over_ds         = "true"
+    ft_preserve_vlanid = "true"
   }
   steering = {
-    rrm = "yes"
-    wnm = "yes"
+    rrm = "true"
+    wnm = "true"
   }
   datapath = { bridge = "bridge" }
   channel  = { band = "5ghz-ax" }
