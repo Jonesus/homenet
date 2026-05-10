@@ -37,3 +37,9 @@ resource "routeros_ip_dns_record" "rethink_cloud" {
   address = "192.168.1.212"
   comment = "LG ThinQ appliance → rethink Service LoadBalancer"
 }
+resource "routeros_ip_dns_record" "rethink_cloud_extra" {
+  type    = "A"
+  name    = "rethink.lan"
+  address = "192.168.1.212"
+  comment = "LG ThinQ appliance → rethink Service LoadBalancer"
+}
