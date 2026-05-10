@@ -12,3 +12,4 @@ pass
 *.pem
 *.key
 .DS_Store
+terraform.log
