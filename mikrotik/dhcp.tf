@@ -71,6 +71,14 @@ locals {
     "70:C9:32:93:89:00" = { ip = "192.168.1.101", comment = "Valetudo" }
     "54:EF:44:9B:C6:34" = { ip = "192.168.1.109", comment = "Aqara Hub M100 (Thread Border Router)" }
     "48:26:4C:62:F1:60" = { ip = "192.168.1.120", comment = "Bosch dishwasher" }
+    # Everything Presence Pro 699300 — pinned per-interface so the device gets
+    # a stable IP whichever side of the `network_type` select is active. The
+    # Ethernet MAC is base MAC + 3 (Espressif ESP32 MAC allocation). RouterOS
+    # rejects two static leases on the same IP, so the two interfaces sit on
+    # adjacent addresses; HA's ESPHome integration uses mDNS, so it
+    # auto-rediscovers across a switch.
+    "F4:2D:C9:69:93:00" = { ip = "192.168.1.126", comment = "Everything Presence Pro 699300 (WiFi)" }
+    "F4:2D:C9:69:93:03" = { ip = "192.168.1.127", comment = "Everything Presence Pro 699300 (Ethernet)" }
   }
 }
 
