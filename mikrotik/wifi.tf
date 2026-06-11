@@ -42,7 +42,7 @@ resource "routeros_wifi_configuration" "band_24" {
 
 resource "routeros_wifi_configuration" "band_5" {
   name = "home-5ghz"
-  ssid = "AsiaOnPihvi"
+  ssid = "AsiaOnPihVintage"
   mode = "ap"
   security = {
     passphrase         = var.wifi_password
