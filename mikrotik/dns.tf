@@ -58,3 +58,17 @@ resource "routeros_ip_dns_record" "rethink_lgthinq_redirect" {
   ttl     = "300"
   comment = "Hijack LG cloud → rethink Service (post-pairing handshake)"
 }
+
+# valetudo.internal is the rooted Dreame X40 Ultra (Valetudo) web UI. It's a
+# physical device on a DHCP reservation (see dhcp.tf, MAC 70:C9:32:93:89:00),
+# not a k8s ingress — its UI is plain HTTP on port 80 at 192.168.1.101. This
+# more-specific record overrides the *.internal wildcard, which would otherwise
+# send the name to ingress-nginx (192.168.1.208) where no such host exists.
+# Mirror in AdGuard.
+resource "routeros_ip_dns_record" "valetudo" {
+  type    = "A"
+  name    = "valetudo.internal"
+  address = "192.168.1.101"
+  ttl     = "300"
+  comment = "Dreame X40 Ultra (Valetudo) web UI → DHCP-reserved device IP"
+}
